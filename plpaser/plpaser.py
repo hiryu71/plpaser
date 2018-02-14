@@ -10,7 +10,7 @@ import plpaser.fileservice as fs
 def plpaser(read_folder, write_folder):
     
     # ファイル読み込み
-    old_df, new_df = fs.file_reader('data')
+    old_df, new_df = fs.file_reader(read_folder)
 
     # 部品表を前処理
     old_df = fp.old_format_paser(old_df)

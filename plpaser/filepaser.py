@@ -1,65 +1,76 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
+import sys
 import numpy as np
 import re
 
-CHOISE_COLS = ['部品番号', '型式', 'メーカ', '数量']
-NEW_COLS = ['index', 'value', 'maker', 'quantity']
+import plpaser.consts as cs
 
 # 旧フォーマットの部品表を前処理
 def old_format_paser(df):
 
     # 準備
-    df0 = df[CHOISE_COLS]
-    df0.columns = NEW_COLS
-    df0['index_mark'] = ''
-    df0['min_index_number'] = 0
-    df0['index_numbers'] = ''
-    df0['index_quantity'] = 0
-    df0['index_group'] = 0
-    df0['index_count'] = 0
+    try:
+        df0 = df[cs.CHOISE_COLS]
+    except KeyError:
+        print('項目名が不足しています。')
+        print('項目名に%sが含まれているか確認してださい。' % cs.CHOISE_COLS)
+        sys.exit()
+    
+    try:
+        df0.columns = cs.NEW_COLS
+    except ValueError:
+        print('項目数が不足しています。')
+        sys.exit()
+
+    df0['Reference_mark'] = ''
+    df0['min_reference_number'] = 0
+    df0['Reference_number'] = ''
+    df0['Reference_quantity'] = 0
+    df0['Reference_group'] = 0
+    df0['Reference_count'] = 0
     df0['memo'] = ''
     df0 = df0.dropna()
 
     # 各部品の先頭行の部品番号を最小にするための下準備
-    df1 = df0.assign(index_mark = df0['index'].str.extract(r'(\D+)', expand=False))
+    df1 = df0.assign(Reference_mark = df0['Reference'].str.extract(r'(\D+)', expand=False))
     for i, row in df1.iterrows():
         number_list = []
-        indexs = re.split(r",\s|,", row['index'])
+        indexs = re.split(r",\s|,", row['Reference'])
         for j in range(len(indexs)):
             number_list.append(int(re.findall(r'(\d+|\D+)', indexs[j])[1]))
-        df1.at[i, 'min_index_number'] = min(number_list)
+        df1.at[i, 'min_reference_number'] = min(number_list)
         number_list.sort()
-        df1.at[i, 'index_numbers'] = number_list
-        df1.at[i, 'index_quantity'] = len(indexs)
-        df1.at[i, 'index_group'] = i
+        df1.at[i, 'Reference_number'] = number_list
+        df1.at[i, 'Reference_quantity'] = len(indexs)
+        df1.at[i, 'Reference_group'] = i
 
     # ソート、部品を1個ずつ1行用意、各部品毎に番号割り振り、indexリセット
-    df2 = df1.sort_values(['index_mark', 'min_index_number'], ascending=True)
-    df2 = df2.loc[np.repeat(df2.index.values, df2.index_quantity)]
-    df2['index_count'] = df2.groupby('index_group').cumcount()
+    df2 = df1.sort_values(['Reference_mark', 'min_reference_number'], ascending=True)
+    df2 = df2.loc[np.repeat(df2.index.values, df2.Reference_quantity)]
+    df2['Reference_count'] = df2.groupby('Reference_group').cumcount()
     df2 = df2.reset_index()
 
-    # 部品番号を分解、各部品の先頭行以外の数量を0に変更、エラー処理
+    # 部品番号を合体、各部品の先頭行以外の数量を0に変更、エラー処理
     df3 = df2.copy()
     for i, row in df3.iterrows():
-        strings = row['index_mark'] + str(row['index_numbers'][row['index_count']])
-        df3.at[i, 'index'] = strings
+        strings = row['Reference_mark'] + str(row['Reference_number'][row['Reference_count']])
+        df3.at[i, 'Reference'] = strings
 
-        if row['index_count'] == 0:
-            if row['quantity'] != len(row['index_numbers']):
+        if row['Reference_count'] == 0:
+            if row['Quantity'] != len(row['Reference_number']):
                 df3.at[i, 'memo'] = '数量が間違っています'
         else:
-            df3.at[i, 'quantity'] = 0
-            
+            df3.at[i, 'Quantity'] = 0
+
     # 不要な行を削除
-    drop_col = ['level_0', 'index_mark', 'min_index_number', 'index_numbers', 'index_quantity', 'index_group', 'index_count']
+    drop_col = ['index', 'Reference_mark', 'min_reference_number', 'Reference_number', 'Reference_quantity', 'Reference_group', 'Reference_count']
     df4 = df3.drop(drop_col, axis=1)
 
     # 数量を修正
-    df4['quantity'] = df4['quantity'].astype('int')
-    df4['quantity'] = df4['quantity'].astype('str')
-    df4.loc[df4.quantity == '0', 'quantity'] = ''
+    df4['Quantity'] = df4['Quantity'].astype('int')
+    df4['Quantity'] = df4['Quantity'].astype('str')
+    df4.loc[df4.Quantity == '0', 'Quantity'] = ''
 
     return df4
 
@@ -67,31 +78,39 @@ def old_format_paser(df):
 # 新フォーマットの部品表を前処理
 def new_format_paser(df):
 
-    df = df[CHOISE_COLS]
-    df.columns = NEW_COLS
+    # 準備
+    try:
+        df = df[cs.CHOISE_COLS]
+    except KeyError:
+        print('項目名が不足しています。')
+        print('項目名に%sが含まれているか確認してださい。' % cs.CHOISE_COLS)
+        sys.exit()
+    df.columns = cs.NEW_COLS
     df = df.dropna(thresh=2)
-    df['index_mark'] = ''
-    df['index_number'] = 0
+    df['Reference_mark'] = ''
+    df['Reference_number'] = 0
     df['memo'] = ''
 
+    # 各部品の先頭行の部品番号を最小にする
     cols_list = list(df.columns)
     memo_col = cols_list.index('memo')
-    quantity_col = cols_list.index('quantity')
+    quantity_col = cols_list.index('Quantity')
 
-    df = df.assign(index_mark=df['index'].str.extract(r'(\D+)', expand=False))
-    df = df.assign(index_number=df['index'].str.extract(r'(\d+)', expand=False).astype(int))
-    df = df.sort_values(['index_mark', 'index_number'], ascending=True)
+    df = df.assign(Reference_mark=df['Reference'].str.extract(r'(\D+)', expand=False))
+    df = df.assign(Reference_number=df['Reference'].str.extract(r'(\d+)', expand=False).astype(int))
+    df = df.sort_values(['Reference_mark', 'Reference_number'], ascending=True)
     df = df.reset_index(drop=True)
 
-    item_df = df['value']
+    # 誤記の確認
+    item_df = df['Value']
     item_df = item_df.drop_duplicates()
     item_lists = item_df.values.tolist()
 
     df = df.fillna(0)
     df3 = pd.DataFrame()
     for i in item_lists:
-        df2 = df[df.value == i]
-        quantity = max(df2['quantity'])
+        df2 = df[df.Value == i]
+        quantity = max(df2['Quantity'])
         if quantity != len(df2):
             df2.iat[0, memo_col] += '数量が間違っています。'
             
@@ -102,12 +121,12 @@ def new_format_paser(df):
         df3 = pd.concat([df3, df2])
 
     # 不要な行を削除
-    drop_col = ['index_mark', 'index_number']
+    drop_col = ['Reference_mark', 'Reference_number']
     df4 = df3.drop(drop_col, axis=1)
 
     # 数量を修正
-    df4['quantity'] = df4['quantity'].astype('int')
-    df4['quantity'] = df4['quantity'].astype('str')
-    df4.loc[df4.quantity == '0', 'quantity'] = ''
+    df4['Quantity'] = df4['Quantity'].astype('int')
+    df4['Quantity'] = df4['Quantity'].astype('str')
+    df4.loc[df4.Quantity == '0', 'Quantity'] = ''
 
     return df4
