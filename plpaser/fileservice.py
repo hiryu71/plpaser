@@ -8,13 +8,10 @@ import plpaser.consts as cs
 # ファイル読み込みとチェック（最初のシートに部品表があることが前提）
 def read_and_check(file_path):
 
-#    SEARCH_ROWS = 20
-#    SEARCH_COLS = 5
-
     # 項目の行数を検索
     items_row = -1
     df = pd.read_excel(file_path, header=None, nrows=cs.SEARCH_ROWS, usecols=range(cs.SEARCH_COLS))
-    for i in range(cs.SEARCH_COLS):
+    for i in range(1, cs.SEARCH_COLS):
         tmp = df[i].str.contains(cs.CHOISE_COLS[0])
         for j, value in tmp.iteritems():
             if value == True:
