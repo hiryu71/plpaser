@@ -23,15 +23,18 @@ def old_format_paser(df):
         print('項目数が不足しています。')
         sys.exit()
 
-    df0['Reference_mark'] = ''
-    df0['min_reference_number'] = 0
-    df0['Reference_number'] = ''
-    df0['Reference_quantity'] = 0
-    df0['Reference_group'] = 0
-    df0['Reference_count'] = 0
-    df0['memo'] = ''
-    df0 = df0.dropna()
+    df0 = df0.dropna(how='all')
 
+    df0['Reference_mark'] = ''
+    df0['min_reference_number'] = np.int32(0)
+    df0['Reference_number'] = ''
+    df0['Reference_quantity'] = np.int32(0)
+    df0['Reference_group'] = np.int32(0)
+    df0['Reference_count'] = np.int32(0)
+    df0['memo'] = ''
+
+    df0 = df0.dropna()
+    
     # 各部品の先頭行の部品番号を最小にするための下準備
     df1 = df0.assign(Reference_mark = df0['Reference'].str.extract(r'(\D+)', expand=False))
     for i, row in df1.iterrows():
@@ -73,7 +76,6 @@ def old_format_paser(df):
     df4.loc[df4.Quantity == '0', 'Quantity'] = ''
 
     return df4
-
 
 # 新フォーマットの部品表を前処理
 def new_format_paser(df):
