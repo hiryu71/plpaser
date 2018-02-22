@@ -89,6 +89,7 @@ def new_format_paser(df):
         sys.exit()
     df.columns = cs.NEW_COLS
     df = df.dropna(thresh=2)
+    df = df.dropna(subset=['Reference'])
     df['Reference_mark'] = ''
     df['Reference_number'] = 0
     df['memo'] = ''

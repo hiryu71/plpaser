@@ -10,14 +10,15 @@ import plpaser.fileservice as fs
 def plpaser(read_folder, write_folder):
     
     # ファイル読み込み
+    print('ファイル読み込み')
     old_df, new_df = fs.file_reader(read_folder)
 
     # 部品表を前処理
+    print('旧フォーマットの部品表を前処理')
     old_df = fp.old_format_paser(old_df)
+
+    print('新フォーマットの部品表を前処理')
     new_df = fp.new_format_paser(new_df)
 
     # ファイル出力
     fs.file_writer(old_df, new_df, write_folder)
-
-
-    print('実行成功!!!')
