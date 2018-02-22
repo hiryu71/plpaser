@@ -133,3 +133,24 @@ def new_format_paser(df):
     df4.loc[df4.Quantity == '0', 'Quantity'] = ''
 
     return df4
+
+# 差分チェック
+def check_dif(old_df, new_df):
+
+    ref = cs.NEW_COLS[0]
+    dif_old_df = old_df[~old_df[ref].isin(new_df[ref])]
+    dif_new_df = new_df[~new_df[ref].isin(old_df[ref])]
+
+    # 削除
+    dif_old_list = list(dif_old_df[ref].values.flatten())
+    dif_old_str = '\n'.join(dif_old_list)
+
+    # 追加
+    dif_new_list = dif_new_df[ref]
+    dif_new_str = '\n'.join(dif_new_list)
+
+    # 差分
+    dif_str = '# 削除--------------\n' + dif_old_str + '\n'\
+            + '# 追加--------------\n' + dif_new_str + '\n'
+
+    return dif_str

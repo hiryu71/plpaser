@@ -1,5 +1,6 @@
 *.xls*
 *.csv
 *.txt
+*.cmd
 *.pyc
 tasks.json

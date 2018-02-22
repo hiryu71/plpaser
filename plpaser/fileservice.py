@@ -47,10 +47,15 @@ def file_reader(folder_path):
     return old_df, new_df
 
 # ファイル書き込み
-def file_writer(old_df, new_df, folder_path):
+def file_writer(old_df, new_df, dif_str, folder_path):
     old_path = folder_path + '/01_oldFormat.csv'
     new_path = folder_path + '/02_newFormat.csv'
+    dif_path = folder_path + '/03_result.txt'
 
     old_df.to_csv(old_path, index=False)
     new_df.to_csv(new_path, index=False)
+
+    f = open(dif_path,'w')
+    f.write(dif_str)
+    f.close()
 
