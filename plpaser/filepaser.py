@@ -142,15 +142,62 @@ def check_dif(old_df, new_df):
     dif_new_df = new_df[~new_df[ref].isin(old_df[ref])]
 
     # 削除
-    dif_old_list = list(dif_old_df[ref].values.flatten())
+    dif_old_list = dif_old_df[ref].values.tolist()
     dif_old_str = '\n'.join(dif_old_list)
 
     # 追加
     dif_new_list = dif_new_df[ref]
     dif_new_str = '\n'.join(dif_new_list)
 
+    # 旧フォーマットの重複
+    dup_old = dif_old_df[dif_old_df.duplicated('Reference', keep=False)]
+    dup_old_arr = dup_old.values.tolist()
+    str_list = []
+    for i in range(len(dup_old_arr)):
+        tmp = ','.join(dup_old_arr[i])
+        str_list.append(tmp)
+    dup_old_str = '\n'.join(str_list)
+
+    # 新フォーマットの重複
+    dup_new = dif_new_df[dif_new_df.duplicated('Reference', keep=False)]
+    dup_new_arr = dup_new.values.tolist()
+    str_list = []
+    for i in range(len(dup_new_arr)):
+        tmp = ','.join(dup_new_arr[i])
+        str_list.append(tmp)
+    dup_new_str = '\n'.join(str_list)
+
     # 差分
     dif_str = '# 削除--------------\n' + dif_old_str + '\n'\
-            + '# 追加--------------\n' + dif_new_str + '\n'
+            + '# 追加--------------\n' + dif_new_str + '\n'\
+            + '# 旧フォーマットの重複--------------\n' + dup_old_str + '\n'\
+            + '# 新フォーマットの重複--------------\n' + dup_new_str + '\n'
+    
+    # 部品番号の行を揃える
+    old_df, new_df = align_line(old_df, new_df, dif_old_list, dif_new_list)
 
-    return dif_str
+    return old_df, new_df, dif_str
+
+# 部品番号の行を揃える
+def align_line(old_df, new_df, dif_old_list, dif_new_list):
+
+    old_arr = old_df.values
+    del_row = []
+    for item in dif_old_list:
+        tmp = np.where(old_arr==item)[0]
+        del_row.extend(list(tmp))
+    del_row = list(set(del_row))
+    del_row.sort()
+    
+    new_arr = new_df.values
+    add_row = []
+    for item in dif_new_list:
+        tmp = np.where(new_arr==item)[0]
+        add_row.extend(list(tmp))
+    add_row = list(set(add_row))
+    add_row.sort()
+
+    print(del_row)
+    print(add_row)
+    
+    return old_df, new_df

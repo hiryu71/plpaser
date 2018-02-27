@@ -21,7 +21,7 @@ def plpaser(read_folder, write_folder):
     new_df = fp.new_format_paser(new_df)
 
     print('差分チェック')
-    dif_str = fp.check_dif(old_df, new_df)
+    old_df, new_df, dif_str = fp.check_dif(old_df, new_df)
 
     # ファイル出力
     fs.file_writer(old_df, new_df, dif_str, write_folder)
