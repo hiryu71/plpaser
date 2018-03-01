@@ -6,6 +6,8 @@ import re
 
 import plpaser.consts as cs
 
+ROW_OFFSET = 2
+
 # 旧フォーマットの部品表を前処理
 def old_format_paser(df):
 
@@ -170,15 +172,15 @@ def check_dif(old_df, new_df):
     # 差分
     dif_str = '# 削除--------------\n' + dif_old_str + '\n'\
             + '# 追加--------------\n' + dif_new_str + '\n'\
-            + '# 旧フォーマットの重複--------------\n' + dup_old_str + '\n'\
-            + '# 新フォーマットの重複--------------\n' + dup_new_str + '\n'
+            + '# 旧フォーマットの部品番号の重複--------------\n' + dup_old_str + '\n'\
+            + '# 新フォーマットの部品番号の重複--------------\n' + dup_new_str + '\n'
     
     # 部品番号の行を揃える
-    old_df, new_df = align_line(old_df, new_df, dif_old_list, dif_new_list)
+    #old_df, new_df = align_line(old_df, new_df, dif_old_list, dif_new_list)
 
     return old_df, new_df, dif_str
 
-# 部品番号の行を揃える
+# 部品番号の行を揃える(処理が微妙)
 def align_line(old_df, new_df, dif_old_list, dif_new_list):
 
     old_arr = old_df.values
@@ -199,5 +201,39 @@ def align_line(old_df, new_df, dif_old_list, dif_new_list):
 
     print(del_row)
     print(add_row)
+
+    row_offset = []
+    cnt = 0
+    for i in add_row:
+        for j in del_row:
+            if i > j:
+                cnt += 1
+        else:
+            row_offset.append(cnt)
+            cnt = 0
+    add_row = np.array(add_row) + np.array(row_offset)
+
+    row_offset = []
+    cnt = 0
+    for i in del_row:
+        for j in add_row:
+            if i > j:
+                cnt += 1
+        else:
+            row_offset.append(cnt)
+            cnt = 0
+    del_row = np.array(del_row) + np.array(row_offset)
+    
+    empty_line = np.full(len(old_df.columns), '')
+    for row in add_row:
+        old_arr = np.insert(old_arr, row, empty_line, axis=0)
+    old_df = pd.DataFrame(old_arr)
+    old_df.columns = old_df.columns
+
+    empty_line = np.full(len(new_df.columns), '')
+    for row in del_row:
+        new_arr = np.insert(new_arr, row, empty_line, axis=0)
+    new_df = pd.DataFrame(new_arr)
+    new_df.columns = new_df.columns
     
     return old_df, new_df
