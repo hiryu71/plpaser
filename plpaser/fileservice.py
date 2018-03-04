@@ -10,13 +10,14 @@ def read_and_check(file_path):
 
     # 項目の行数を検索
     items_row = -1
-    df = pd.read_excel(file_path, header=None, nrows=cs.SEARCH_ROWS, usecols=range(cs.SEARCH_COLS))
-    for i in range(1, cs.SEARCH_COLS):
+    df = pd.read_excel(file_path, header=None, nrows=cs.SEARCH_ROWS, usecols=range(cs.SEARCH_COLS))    
+#    for i in range(1, cs.SEARCH_COLS):
+    for i in range(cs.SEARCH_COLS):
         tmp = df[i].str.contains(cs.CHOISE_COLS[0])
         for j, value in tmp.iteritems():
             if value == True:
                 items_row = j
-                
+
     if items_row == -1:
         print('部品番号の項目のセルが見つかりません。')
         sys.exit()
