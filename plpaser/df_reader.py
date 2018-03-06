@@ -2,6 +2,7 @@
 import pandas as pd
 import sys
 import glob
+import numpy as np
 
 SEARCH_ROWS = 20
 SEARCH_COLS = 5
@@ -18,17 +19,16 @@ def create_files_list(folder_path, extension='*'):
 # 項目の行を検索
 def search_items_row(df, index):
 
+    df = df.dropna(axis = 1, how='all')
+    df.columns = np.arange(0, len(df.columns), 1)
     items_row = -1
-    for i in range(SEARCH_COLS):
-        tmp = df[i].str.contains(index)
-        for j, value in tmp.iteritems():
-            if value == True:
-                items_row = j
-                break
-        else:
-            continue
-        break
-    
+    for col in range(SEARCH_COLS):
+        df_ = df[col].str.contains(index)
+        search_col = list(df_)
+        if True in search_col:
+            items_row = search_col.index(True)
+            break
+
     if items_row == -1:
         print('項目のセルが見つかりません。')
         sys.exit()  
