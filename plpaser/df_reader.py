@@ -23,8 +23,7 @@ def search_items_row(df, index):
     df.columns = np.arange(0, len(df.columns), 1)
     items_row = -1
     for col in range(SEARCH_COLS):
-        df_ = df[col].str.contains(index)
-        search_col = list(df_)
+        search_col = list(df[col].str.contains(index))
         if True in search_col:
             items_row = search_col.index(True)
             break
