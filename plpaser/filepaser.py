@@ -73,9 +73,7 @@ def old_format_paser(df):
     df4 = df3.drop(drop_col, axis=1)
 
     # 数量を修正
-    df4['Quantity'] = df4['Quantity'].astype('int')
-    df4['Quantity'] = df4['Quantity'].astype('str')
-    df4.loc[df4.Quantity == '0', 'Quantity'] = ''
+    df4 = change_to_int_str(df4, 'Quantity')
 
     return df4
 
@@ -130,11 +128,18 @@ def new_format_paser(df):
     df4 = df3.drop(drop_col, axis=1)
 
     # 数量を修正
-    df4['Quantity'] = df4['Quantity'].astype('int')
-    df4['Quantity'] = df4['Quantity'].astype('str')
-    df4.loc[df4.Quantity == '0', 'Quantity'] = ''
+    df4 = change_to_int_str(df4, 'Quantity')
 
     return df4
+
+
+# 整数の文字列に変換
+def change_to_int_str(df, col):
+    df[col] = df[col].astype('int')
+    df[col] = df[col].astype('str')
+    df.loc[df[col] == '0', col] = ''    
+
+    return df
 
 # 差分チェック
 def check_dif(old_df, new_df):
