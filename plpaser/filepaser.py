@@ -9,24 +9,9 @@ import plpaser.consts as cs
 ROW_OFFSET = 2
 
 # 旧フォーマットの部品表を前処理
-def old_format_paser(df):
+def old_format_paser(df0):
 
     # 準備
-    try:
-        df0 = df[cs.CHOISE_COLS]
-    except KeyError:
-        print('項目名が不足しています。')
-        print('項目名に%sが含まれているか確認してださい。' % cs.CHOISE_COLS)
-        sys.exit()
-    
-    try:
-        df0.columns = cs.NEW_COLS
-    except ValueError:
-        print('項目数が不足しています。')
-        sys.exit()
-
-    df0 = df0.dropna(how='all')
-
     df0['Ref_mark'] = ''
     df0['min_ref_number'] = np.int32(0)
     df0['Ref_number'] = ''
@@ -78,13 +63,6 @@ def old_format_paser(df):
 def new_format_paser(df):
 
     # 準備
-    try:
-        df = df[cs.CHOISE_COLS]
-    except KeyError:
-        print('項目名が不足しています。')
-        print('項目名に%sが含まれているか確認してださい。' % cs.CHOISE_COLS)
-        sys.exit()
-    df.columns = cs.NEW_COLS
     df = df.dropna(thresh=2)
     df = df.dropna(subset=['Reference'])
     df['Ref_mark'] = ''

@@ -17,10 +17,10 @@ def plpaser(read_folder, write_folder):
     index = list(cs.COLS_DICT.values())[0]
 
     old_df = dr.read_excel_df(files_list[0], index)
-#    old_df = dr.format_items(old_df, cs.COLS_DICT)
+    old_df = dr.format_items(old_df, cs.COLS_DICT)
 
     new_df = dr.read_excel_df(files_list[1], index)
-#    new_df = dr.format_items(new_df, cs.COLS_DICT)    
+    new_df = dr.format_items(new_df, cs.COLS_DICT)    
 
     # 部品表を前処理
     print('旧フォーマットの部品表を前処理')
