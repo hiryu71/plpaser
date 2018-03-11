@@ -20,19 +20,14 @@ def create_files_list(folder_path, extension='*'):
 def search_items_row(df, index):
 
     df = df.dropna(axis = 1, how='all')
-    df.columns = np.arange(0, len(df.columns), 1)
-    items_row = -1
-    for col in range(SEARCH_COLS):
+    df.columns = np.arange(len(df.columns))
+    for col in range(len(df.columns)):
         search_col = list(df[col].str.contains(index))
         if True in search_col:
-            items_row = search_col.index(True)
-            break
+            return search_col.index(True)
 
-    if items_row == -1:
-        print('項目のセルが見つかりません。')
-        sys.exit()  
-
-    return  items_row
+    print('項目のセルが見つかりません。')
+    sys.exit()  
 
 # ExcelファイルからDataFrameを読み込み
 def read_excel_df(file_path, index):
