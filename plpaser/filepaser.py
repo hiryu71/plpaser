@@ -27,46 +27,46 @@ def old_format_paser(df):
 
     df0 = df0.dropna(how='all')
 
-    df0['Reference_mark'] = ''
-    df0['min_reference_number'] = np.int32(0)
-    df0['Reference_number'] = ''
-    df0['Reference_quantity'] = np.int32(0)
-    df0['Reference_group'] = np.int32(0)
-    df0['Reference_count'] = np.int32(0)
+    df0['Ref_mark'] = ''
+    df0['min_ref_number'] = np.int32(0)
+    df0['Ref_number'] = ''
+    df0['Ref_quantity'] = np.int32(0)
+    df0['Ref_group'] = np.int32(0)
+    df0['Ref_count'] = np.int32(0)
     df0['memo'] = ''
 
     df0 = df0.dropna()
     
     # 各部品の先頭行の部品番号を最小にするための下準備
-    df1 = df0.assign(Reference_mark = df0['Reference'].str.extract(r'(\D+)', expand=False))
+    df1 = df0.assign(Ref_mark = df0['Reference'].str.extract(r'(\D+)', expand=False))
     for index, row in df1.iterrows():
         number_list = list(map(int, re.findall(r'(\d+)', row['Reference'])))
         number_list.sort()
-        df1.at[index, 'min_reference_number'] = min(number_list)
-        df1.at[index, 'Reference_number'] = number_list
-        df1.at[index, 'Reference_quantity'] = len(number_list)
-        df1.at[index, 'Reference_group'] = index
+        df1.at[index, 'min_ref_number'] = min(number_list)
+        df1.at[index, 'Ref_number'] = number_list
+        df1.at[index, 'Ref_quantity'] = len(number_list)
+        df1.at[index, 'Ref_group'] = index
 
     # ソート、部品を1個ずつ1行用意、各部品毎に番号割り振り、indexリセット
-    df2 = df1.sort_values(['Reference_mark', 'min_reference_number'], ascending=True)
-    df2 = df2.loc[np.repeat(df2.index.values, df2.Reference_quantity)]
-    df2['Reference_count'] = df2.groupby('Reference_group').cumcount()
+    df2 = df1.sort_values(['Ref_mark', 'min_ref_number'], ascending=True)
+    df2 = df2.loc[np.repeat(df2.index.values, df2.Ref_quantity)]
+    df2['Ref_count'] = df2.groupby('Ref_group').cumcount()
     df2 = df2.reset_index()
 
     # 部品番号を合体、各部品の先頭行以外の数量を0に変更、エラー処理
     df3 = df2.copy()
     for i, row in df3.iterrows():
-        strings = row['Reference_mark'] + str(row['Reference_number'][row['Reference_count']])
+        strings = row['Ref_mark'] + str(row['Ref_number'][row['Ref_count']])
         df3.at[i, 'Reference'] = strings
 
-        if row['Reference_count'] == 0:
-            if row['Quantity'] != len(row['Reference_number']):
+        if row['Ref_count'] == 0:
+            if row['Quantity'] != len(row['Ref_number']):
                 df3.at[i, 'memo'] = '数量が間違っています'
         else:
             df3.at[i, 'Quantity'] = 0
 
     # 不要な行を削除
-    drop_col = ['index', 'Reference_mark', 'min_reference_number', 'Reference_number', 'Reference_quantity', 'Reference_group', 'Reference_count']
+    drop_col = ['index', 'Ref_mark', 'min_ref_number', 'Ref_number', 'Ref_quantity', 'Ref_group', 'Ref_count']
     df4 = df3.drop(drop_col, axis=1)
 
     # 数量を修正
@@ -87,8 +87,8 @@ def new_format_paser(df):
     df.columns = cs.NEW_COLS
     df = df.dropna(thresh=2)
     df = df.dropna(subset=['Reference'])
-    df['Reference_mark'] = ''
-    df['Reference_number'] = 0
+    df['Ref_mark'] = ''
+    df['Ref_number'] = 0
     df['memo'] = ''
 
     # 各部品の先頭行の部品番号を最小にする
@@ -96,9 +96,9 @@ def new_format_paser(df):
     memo_col = cols_list.index('memo')
     quantity_col = cols_list.index('Quantity')
 
-    df = df.assign(Reference_mark=df['Reference'].str.extract(r'(\D+)', expand=False))
-    df = df.assign(Reference_number=df['Reference'].str.extract(r'(\d+)', expand=False).astype(int))
-    df = df.sort_values(['Reference_mark', 'Reference_number'], ascending=True)
+    df = df.assign(Ref_mark=df['Reference'].str.extract(r'(\D+)', expand=False))
+    df = df.assign(Ref_number=df['Reference'].str.extract(r'(\d+)', expand=False).astype(int))
+    df = df.sort_values(['Ref_mark', 'Ref_number'], ascending=True)
     df = df.reset_index(drop=True)
 
     # 誤記の確認
@@ -121,7 +121,7 @@ def new_format_paser(df):
         df3 = pd.concat([df3, df2])
 
     # 不要な行を削除
-    drop_col = ['Reference_mark', 'Reference_number']
+    drop_col = ['Ref_mark', 'Ref_number']
     df4 = df3.drop(drop_col, axis=1)
 
     # 数量を修正
