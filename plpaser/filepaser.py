@@ -39,16 +39,13 @@ def old_format_paser(df):
     
     # 各部品の先頭行の部品番号を最小にするための下準備
     df1 = df0.assign(Reference_mark = df0['Reference'].str.extract(r'(\D+)', expand=False))
-    for i, row in df1.iterrows():
-        number_list = []
-        indexs = re.split(r",\s|,", row['Reference'])
-        for j in range(len(indexs)):
-            number_list.append(int(re.findall(r'(\d+|\D+)', indexs[j])[1]))
-        df1.at[i, 'min_reference_number'] = min(number_list)
+    for index, row in df1.iterrows():
+        number_list = list(map(int, re.findall(r'(\d+)', row['Reference'])))
         number_list.sort()
-        df1.at[i, 'Reference_number'] = number_list
-        df1.at[i, 'Reference_quantity'] = len(indexs)
-        df1.at[i, 'Reference_group'] = i
+        df1.at[index, 'min_reference_number'] = min(number_list)
+        df1.at[index, 'Reference_number'] = number_list
+        df1.at[index, 'Reference_quantity'] = len(number_list)
+        df1.at[index, 'Reference_group'] = index
 
     # ソート、部品を1個ずつ1行用意、各部品毎に番号割り振り、indexリセット
     df2 = df1.sort_values(['Reference_mark', 'min_reference_number'], ascending=True)
