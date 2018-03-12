@@ -3,7 +3,7 @@ NEW_COLS = ['Reference', 'Value', 'Maker', 'Quantity']
 SEARCH_ROWS = 20
 SEARCH_COLS = 5
 
-COLS_DICT = {
+ITEMS_DICT = {
     'Reference':'部品番号',
     'Value':'型番',
     'Maker':'メーカー',

@@ -12,14 +12,15 @@ ROW_OFFSET = 2
 def old_format_paser(df0):
 
     # 準備
-    df0['Ref_mark'] = ''
-    df0['min_ref_number'] = np.int32(0)
-    df0['Ref_number'] = ''
-    df0['Ref_quantity'] = np.int32(0)
-    df0['Ref_group'] = np.int32(0)
-    df0['Ref_count'] = np.int32(0)
-    df0['memo'] = ''
-
+    df0 = df0.assign(
+        Ref_mark='',
+        min_ref_number=np.int32(0),
+        Ref_number='',
+        Ref_quantity=np.int32(0),
+        Ref_group=np.int32(0),
+        Ref_count=np.int32(0),
+        memo=''
+    )
     df0 = df0.dropna()
     
     # 各部品の先頭行の部品番号を最小にするための下準備
@@ -40,15 +41,15 @@ def old_format_paser(df0):
 
     # 部品番号を合体、各部品の先頭行以外の数量を0に変更、エラー処理
     df3 = df2.copy()
-    for i, row in df3.iterrows():
+    for index, row in df3.iterrows():
         strings = row['Ref_mark'] + str(row['Ref_number'][row['Ref_count']])
-        df3.at[i, 'Reference'] = strings
+        df3.at[index, 'Reference'] = strings
 
         if row['Ref_count'] == 0:
             if row['Quantity'] != len(row['Ref_number']):
-                df3.at[i, 'memo'] = '数量が間違っています'
+                df3.at[index, 'memo'] = '数量が間違っています'
         else:
-            df3.at[i, 'Quantity'] = 0
+            df3.at[index, 'Quantity'] = 0
 
     # 不要な行を削除
     drop_col = ['index', 'Ref_mark', 'min_ref_number', 'Ref_number', 'Ref_quantity', 'Ref_group', 'Ref_count']
@@ -65,17 +66,20 @@ def new_format_paser(df):
     # 準備
     df = df.dropna(thresh=2)
     df = df.dropna(subset=['Reference'])
-    df['Ref_mark'] = ''
-    df['Ref_number'] = 0
-    df['memo'] = ''
+    df = df.assign(
+        Ref_mark='',
+        Ref_number=np.int32(0),
+        memo=''
+    )
 
     # 各部品の先頭行の部品番号を最小にする
     cols_list = list(df.columns)
     memo_col = cols_list.index('memo')
     quantity_col = cols_list.index('Quantity')
-
-    df = df.assign(Ref_mark=df['Reference'].str.extract(r'(\D+)', expand=False))
-    df = df.assign(Ref_number=df['Reference'].str.extract(r'(\d+)', expand=False).astype(int))
+    df = df.assign(
+        Ref_mark=df['Reference'].str.extract(r'(\D+)', expand=False),
+        Ref_number=df['Reference'].str.extract(r'(\d+)', expand=False).astype(int)
+    )
     df = df.sort_values(['Ref_mark', 'Ref_number'], ascending=True)
     df = df.reset_index(drop=True)
 
