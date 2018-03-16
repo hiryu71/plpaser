@@ -51,9 +51,10 @@ def old_format_paser(df0):
         else:
             df3.at[index, 'Quantity'] = 0
 
-    # 不要な行を削除
-    drop_col = ['index', 'Ref_mark', 'min_ref_number', 'Ref_number', 'Ref_quantity', 'Ref_group', 'Ref_count']
-    df4 = df3.drop(drop_col, axis=1)
+    # 不要な列を削除
+    items_list = list(cs.ITEMS_DICT.keys())
+    items_list.append('memo')
+    df4 = df3[items_list]
 
     # 数量を修正
     df4 = change_to_int_str(df4, 'Quantity')
@@ -102,9 +103,10 @@ def new_format_paser(df):
 
         df3 = pd.concat([df3, df2])
 
-    # 不要な行を削除
-    drop_col = ['Ref_mark', 'Ref_number']
-    df4 = df3.drop(drop_col, axis=1)
+    # 不要な列を削除
+    items_list = list(cs.ITEMS_DICT.keys())
+    items_list.append('memo')
+    df4 = df3[items_list]
 
     # 数量を修正
     df4 = change_to_int_str(df4, 'Quantity')
@@ -113,10 +115,10 @@ def new_format_paser(df):
 
 
 # 整数の文字列に変換
-def change_to_int_str(df, col):
-    df[col] = df[col].astype('int')
-    df[col] = df[col].astype('str')
-    df.loc[df[col] == '0', col] = ''    
+def change_to_int_str(df, item):
+    df = df.astype({item:int})
+    df = df.astype({item:str})
+    df.loc[df[item] == '0', item] = ''
 
     return df
 
