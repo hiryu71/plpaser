@@ -13,7 +13,6 @@ def old_format_paser(df0):
 
     # 準備
     df0 = df0.assign(
-        Ref_mark='',
         min_ref_number=np.int32(0),
         Ref_number='',
         Ref_quantity=np.int32(0),
@@ -67,11 +66,7 @@ def new_format_paser(df):
     # 準備
     df = df.dropna(thresh=2)
     df = df.dropna(subset=['Reference'])
-    df = df.assign(
-        Ref_mark='',
-        Ref_number=np.int32(0),
-        memo=''
-    )
+    df = df.assign(memo='')
 
     # 各部品の先頭行の部品番号を最小にする
     cols_list = list(df.columns)
