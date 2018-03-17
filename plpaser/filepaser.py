@@ -21,6 +21,7 @@ def old_format_paser(df0):
         memo=''
     )
     df0 = df0.dropna()
+    df0 = df0.astype({'Quantity':int})
     
     # 各部品の先頭行の部品番号を最小にするための下準備
     df1 = df0.assign(Ref_mark = df0['Reference'].str.extract(r'(\D+)', expand=False))
@@ -30,7 +31,8 @@ def old_format_paser(df0):
         df1.at[index, 'min_ref_number'] = min(number_list)
         df1.at[index, 'Ref_number'] = number_list
         df1.at[index, 'Ref_quantity'] = len(number_list)
-        df1.at[index, 'Ref_group'] = index
+
+    df1['Ref_group'] = list(df1.index)
 
     # ソート、部品を1個ずつ1行用意、各部品毎に番号割り振り、indexリセット
     df2 = df1.sort_values(['Ref_mark', 'min_ref_number'], ascending=True)
@@ -47,16 +49,15 @@ def old_format_paser(df0):
         if row['Ref_count'] == 0:
             if row['Quantity'] != len(row['Ref_number']):
                 df3.at[index, 'memo'] = '数量が間違っています'
-        else:
-            df3.at[index, 'Quantity'] = 0
+
+    # 数量を修正
+    df3 = df3.astype({'Quantity':str})
+    df3.loc[df3['Ref_count'] != 0, 'Quantity'] = ''
 
     # 不要な列を削除
     items_list = list(cs.ITEMS_DICT.keys())
     items_list.append('memo')
     df4 = df3[items_list]
-
-    # 数量を修正
-    df4 = change_to_int_str(df4, 'Quantity')
 
     return df4
 
