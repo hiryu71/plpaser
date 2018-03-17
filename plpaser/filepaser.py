@@ -13,11 +13,9 @@ def old_format_paser(df0):
 
     # 準備
     df0 = df0.assign(
-        min_ref_number=np.int32(0),
         Ref_number='',
+        min_ref_number=np.int32(0),
         Ref_quantity=np.int32(0),
-        Ref_group=np.int32(0),
-        Ref_count=np.int32(0),
         memo=''
     )
     df0 = df0.dropna()
@@ -28,8 +26,8 @@ def old_format_paser(df0):
     for index, row in df1.iterrows():
         number_list = list(map(int, re.findall(r'(\d+)', row['Reference'])))
         number_list.sort()
-        df1.at[index, 'min_ref_number'] = min(number_list)
         df1.at[index, 'Ref_number'] = number_list
+        df1.at[index, 'min_ref_number'] = min(number_list)
         df1.at[index, 'Ref_quantity'] = len(number_list)
 
     df1['Ref_group'] = list(df1.index)
@@ -40,12 +38,12 @@ def old_format_paser(df0):
     df2['Ref_count'] = df2.groupby('Ref_group').cumcount()
     df2 = df2.reset_index()
 
-    # 部品番号を合体、各部品の先頭行以外の数量を0に変更、エラー処理
+    # 部品番号を合体
     df3 = df2.copy()
     for index, row in df3.iterrows():
         strings = row['Ref_mark'] + str(row['Ref_number'][row['Ref_count']])
         df3.at[index, 'Reference'] = strings
-    
+        
     # 数量チェック
     WRONG_QUANTITY = (df3['Ref_count'] == 0)\
                    & (df3['Quantity'] != df3['Ref_quantity'])
