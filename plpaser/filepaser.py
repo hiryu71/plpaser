@@ -45,12 +45,13 @@ def old_format_paser(df0):
     for index, row in df3.iterrows():
         strings = row['Ref_mark'] + str(row['Ref_number'][row['Ref_count']])
         df3.at[index, 'Reference'] = strings
+    
+    # 数量チェック
+    WRONG_QUANTITY = (df3['Ref_count'] == 0)\
+                   & (df3['Quantity'] != df3['Ref_quantity'])
+    df3.loc[WRONG_QUANTITY, 'memo'] = '数量が間違っています'
 
-        if row['Ref_count'] == 0:
-            if row['Quantity'] != len(row['Ref_number']):
-                df3.at[index, 'memo'] = '数量が間違っています'
-
-    # 数量を修正
+    # 数量の空白処理
     df3 = df3.astype({'Quantity':str})
     df3.loc[df3['Ref_count'] != 0, 'Quantity'] = ''
 
