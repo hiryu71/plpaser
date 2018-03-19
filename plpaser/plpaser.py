@@ -7,6 +7,7 @@ import plpaser.filepaser as fp
 import plpaser.fileservice as fs
 import plpaser.df_reader as dr
 import plpaser.consts as cs
+import plpaser.parts_list as pl
 
 # 部品表を比較するための前処理
 def plpaser(read_folder, write_folder):
@@ -18,6 +19,9 @@ def plpaser(read_folder, write_folder):
 
     old_df = dr.read_excel_df(files_list[0], index)
     old_df = dr.format_items(old_df, cs.ITEMS_DICT)
+
+    fmA_pl = pl.PartsList()
+    fmA_pl.read_parts_list(files_list[0])
 
     new_df = dr.read_excel_df(files_list[1], index)
     new_df = dr.format_items(new_df, cs.ITEMS_DICT)    
