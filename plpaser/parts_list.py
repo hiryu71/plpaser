@@ -35,67 +35,64 @@ class PartsList(object):
 
 class Formatter(object):
 
-    # TODO:initの無駄代入を止める
     def __init__(self, parts_list):
-        self.items_dict = parts_list.items_dict 
-        self.reference = parts_list.reference
-        self.quantity = parts_list.quantity
-        self.__init_pl(parts_list)
+        self.parts_list = parts_list
+        self.__init_pl()
     
-    def __init_pl(self, parts_list):
-        self.pl = parts_list.pl.dropna()
-        self.pl = self.pl.astype({self.quantity:int})
+    def __init_pl(self):
+        self.parts_list.pl = self.parts_list.pl.dropna()
+        self.parts_list.pl = self.parts_list.pl.astype({self.parts_list.quantity:int})
 
     def __call__(self):
         self.__split_reference()
-        self.pl = self.pl.sort_values(['Ref_mark', 'min_ref_number'], ascending=True)
+        self.parts_list.pl = self.parts_list.pl.sort_values(['Ref_mark', 'min_ref_number'], ascending=True)
         self.__prepare_rows()
         self.__reset_reference()
         self.__check_quantity()
         self.__blank()
         self.__reset_items()
-        return self.pl
+        return self.parts_list.pl
     
     def __split_reference(self):
-        self.pl = self.pl.assign(
-            Ref_mark = self.pl[self.reference].str.extract(r'(\D+)', expand=False),
+        self.parts_list.pl = self.parts_list.pl.assign(
+            Ref_mark = self.parts_list.pl[self.parts_list.reference].str.extract(r'(\D+)', expand=False),
             Ref_number='',
             Ref_quantity=np.int32(0),
             min_ref_number=np.int32(0)
         )
 
-        for index, row in self.pl.iterrows():
-            number_list = list(map(int, re.findall(r'(\d+)', row[self.reference])))
+        for index, row in self.parts_list.pl.iterrows():
+            number_list = list(map(int, re.findall(r'(\d+)', row[self.parts_list.reference])))
             number_list.sort()
-            self.pl.at[index, 'Ref_number'] = number_list
-            self.pl.at[index, 'Ref_quantity'] = len(number_list)
-            self.pl.at[index, 'min_ref_number'] = min(number_list)
+            self.parts_list.pl.at[index, 'Ref_number'] = number_list
+            self.parts_list.pl.at[index, 'Ref_quantity'] = len(number_list)
+            self.parts_list.pl.at[index, 'min_ref_number'] = min(number_list)
     
     def __prepare_rows(self):
         # 部品1個ずつに1行用意、部品の種類毎に番号割り振り、indexリセット
-        self.pl['Ref_group'] = list(self.pl.index)
-        self.pl = self.pl.loc[np.repeat(self.pl.index.values, self.pl.Ref_quantity)]
-        self.pl['Ref_count'] = self.pl.groupby('Ref_group').cumcount()
-        self.pl = self.pl.reset_index()
+        self.parts_list.pl['Ref_group'] = list(self.parts_list.pl.index)
+        self.parts_list.pl = self.parts_list.pl.loc[np.repeat(self.parts_list.pl.index.values, self.parts_list.pl.Ref_quantity)]
+        self.parts_list.pl['Ref_count'] = self.parts_list.pl.groupby('Ref_group').cumcount()
+        self.parts_list.pl = self.parts_list.pl.reset_index()
     
     def __reset_reference(self):
-        for index, row in self.pl.iterrows():
+        for index, row in self.parts_list.pl.iterrows():
             reference = row['Ref_mark'] + str(row['Ref_number'][row['Ref_count']])
-            self.pl.at[index, self.reference] = reference
+            self.parts_list.pl.at[index, self.parts_list.reference] = reference
 
     def __check_quantity(self):
-        WRONG_QUANTITY = (self.pl['Ref_count'] == 0)\
-                       & (self.pl[self.quantity] != self.pl['Ref_quantity'])
-        self.pl.loc[WRONG_QUANTITY, 'memo'] = '数量が間違っています'
+        WRONG_QUANTITY = (self.parts_list.pl['Ref_count'] == 0)\
+                       & (self.parts_list.pl[self.parts_list.quantity] != self.parts_list.pl['Ref_quantity'])
+        self.parts_list.pl.loc[WRONG_QUANTITY, 'memo'] = '数量が間違っています'
     
     def __blank(self):
-        self.pl = self.pl.astype({self.quantity:str})
-        self.pl.loc[self.pl['Ref_count'] != 0, self.quantity] = ''
+        self.parts_list.pl = self.parts_list.pl.astype({self.parts_list.quantity:str})
+        self.parts_list.pl.loc[self.parts_list.pl['Ref_count'] != 0, self.parts_list.quantity] = ''
     
     def __reset_items(self):
-        items_list = list(self.items_dict.keys())
+        items_list = list(self.parts_list.items_dict.keys())
         items_list.append('memo')
-        self.pl = self.pl[items_list]
+        self.parts_list.pl = self.parts_list.pl[items_list]
 
         
 
